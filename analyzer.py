@@ -1,5 +1,6 @@
 import logging
 import os
+import pandas as pd
 from .utils import custom_tokenizer
 from .selector import Selector
 from sklearn.externals import joblib
@@ -16,22 +17,30 @@ logger = logging.getLogger(__name__)
 path = os.path.dirname(os.path.abspath(__file__))
 
 
-class Analyzer:
+def text_analyzer(text):
+    """
+        Pretrained model for emotion recognition in text.
+        :param text: text to predict
+    """
+    pipeline = joblib.load(os.path.join(path, 'models/text.pkl'))
+    return pipeline.predict([text])[0]
 
-    def __init__(self, verbose=True, **kwargs):
-        self.verbose = verbose
 
-    @staticmethod
-    def text(text):
-        pipeline = joblib.load(os.path.join(path, 'models/text.pkl'))
-        return pipeline.predict([text])[0]
+def audio_analyzer(audio):
+    """
+        Pretrained model for emotion recognition in audio.
+        :param audio: audio features as a pd.Series
+    """
+    pipeline = joblib.load(os.path.join(path, 'models/audio.pkl'))
+    features = pd.DataFrame(audio).T
+    return pipeline.predict(features)
 
-    @staticmethod
-    def audio(audio):
-        pipeline = joblib.load('models/audio.pkl')
-        pass
 
-    @staticmethod
-    def video(video):
-        pipeline =  joblib.load('models/video.pkl')
-        pass
+def video_analyzer(video):
+    """
+        Pretrained model for emotion recognition in audio.
+        :param video: video features as a pd.Series
+    """
+    pipeline =  joblib.load(os.path.join(path, 'models/video.pkl'))
+    features = pd.DataFrame(video).T
+    return pipeline.predict(features)
