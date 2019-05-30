@@ -41,6 +41,40 @@ def video_analyzer(video):
         Pretrained model for emotion recognition in audio.
         :param video: video features as a pd.Series
     """
-    pipeline =  joblib.load(os.path.join(path, 'models/video.pkl'))
+    pipeline = joblib.load(os.path.join(path, 'models/video.pkl'))
     features = pd.DataFrame(video).T
+    return pipeline.predict(features)
+
+
+def bimodal_analyzer(features, modalities):
+    """
+        Pretrained model for emotion recognition in two modalities.
+        :param features: features as a pd.Series
+        :param modalities: tuple with modalities
+
+        **Example**::
+
+            modalities = ('audio', 'video')
+            prediction = bi_analyzer(features, modalities)
+    """
+    if len(modalities) != 2:
+        raise Exception('length of modalities is {} and must be 2'.format(len(modalities)))
+    if 'text' in modalities and 'audio' in modalities:
+        pipeline = joblib.load(os.path.join(path, 'models/text_audio.pkl'))
+    elif 'audio' in modalities and 'video' in modalities:
+        pipeline = joblib.load(os.path.join(path, 'models/audio_video.pkl'))
+    elif 'video' in modalities and 'text' in modalities:
+        pipeline = joblib.load(os.path.join(path, 'models/video_text.pkl'))
+    else:
+        raise Exception('This combination of modalities are not supported!')
+    return pipeline.predict(features)
+
+
+def multimodal(features):
+    """
+        Pretrained model for emotion recognition in text + audio + video.
+        :param features: text + audio + video features as a pd.Series
+    """
+    pipeline =  joblib.load(os.path.join(path, 'models/multimodal.pkl'))
+    features = pd.DataFrame(features).T
     return pipeline.predict(features)
