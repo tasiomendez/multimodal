@@ -56,7 +56,7 @@ class AudioFeatures(Features):
 class VideoFeatures(Features):
     """
         Extract features from audio file
-        It computes 34 of short-term features implemented in pyAudioAnalysis library.
+        It a pretrained deep learning model for computing emotions.
     """
 
     def __init__(self, **kwargs):
@@ -65,3 +65,89 @@ class VideoFeatures(Features):
 
     def run(self, file):
         return VideoAnalyzer(self.model, file).analyze().toDataFrame()
+
+    def synchronize(self, df, start, end):
+        bounds = pd.Series({'start': start, 'end': end})
+        if end:
+            emotions = df[(df.timestamp >= start) & (df.timestamp < end)].mean()
+        else:
+            emotions = df[(df.timestamp >= start)].mean()
+        # Return a pd.Series
+        return pd.concat([bounds, emotions]).drop('timestamp')
+
+
+class BimodalFeatures(Features):
+    """
+        Extract features from two sources and synchronize them.
+
+        :param file: DataFrame with the bounds for synchronization. It must contain
+                     at least #starttime and #endtime columns of each chunk.
+
+        For accomplish an analysis, the following requirements must be met.
+        - One audio file per utterance
+        - One video file
+        - A DataFrame with transcriptions whose column must be named 'transcription'
+    """
+
+    def __init__(self, df, **kwargs):
+        if not '#starttime' in df.columns or not '#endtime' in df.columns:
+            raise Exception('Some columns are missing in bounds file')
+        self.bounds = df[['#starttime', '#endtime']]
+        super().__init__(**kwargs)
+
+    def run_audio(self, files):
+        if len(files) != len(self.bounds):
+            raise Exception('{} audio files are needed and {} were provided'.format(len(self.bounds), len(files)))
+        series = []
+        for file in files:
+            series.append(AudioFeatures().run(file))
+        self.audio = pd.concat([serie for serie in series], axis=1).transpose()
+        return self
+
+    def run_video(self, file):
+        series = []
+        features = VideoFeatures().run(file)
+        for start, end in zip(self.bounds['#starttime'], self.bounds['#endtime']):
+            series.append(VideoFeatures().synchronize(features, start, end))
+        self.video = pd.concat([serie for serie in series], axis=1).transpose()
+        return self
+
+    def run_text(self, df):
+        self.text = df['transcription']
+        return self
+
+    def run(self, modalities, text=None, audio=None, video=None):
+        if len(modalities) != 2:
+            raise Exception('length of modalities is {} and must be 2'.format(len(modalities)))
+        if 'text' in modalities and 'audio' in modalities:
+            self.run_text(text).run_audio(audio)
+            return pd.concat([self.text, self.audio], axis=1)
+        elif 'audio' in modalities and 'video' in modalities:
+            self.run_audio(audio).run_video(video)
+            return pd.concat([self.audio, self.video], axis=1)
+        elif 'video' in modalities and 'text' in modalities:
+            self.run_video(video).run_text(text)
+            return pd.concat([self.video, self.text], axis=1)
+        else:
+            raise Exception('This combination of modalities are not supported!')
+
+
+class MultimodalFeatures(BimodalFeatures):
+    """
+        Extract features from three sources and synchronize them.
+
+        :param file: DataFrame with the bounds for synchronization. It must contain
+                     at least #starttime and #endtime columns of each chunk.
+
+        For accomplish an analysis, the following requirements must be met.
+        - One audio file per utterance
+        - One video file
+        - A DataFrame with transcriptions whose column must be named 'transcription'
+    """
+
+    def __init__(self, df, **kwargs):
+        super().__init__(df, **kwargs)
+
+    def run(self, text=None, audio=None, video=None):
+        self.run_text(text).run_audio(audio).run_video(video)
+        return pd.concat([self.text, self.audio, self.video], axis=1)

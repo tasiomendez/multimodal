@@ -5,12 +5,6 @@ from .utils import custom_tokenizer
 from .selector import Selector
 from sklearn.externals import joblib
 
-# Models
-# pipeline = joblib.load('models/text_audio.pkl')
-# pipeline = joblib.load('models/audio_video.pkl')
-# pipeline = joblib.load('models/video_text.pkl')
-# pipeline = joblib.load('models/multimodal.pkl')
-
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -49,7 +43,7 @@ def video_analyzer(video):
 def bimodal_analyzer(features, modalities):
     """
         Pretrained model for emotion recognition in two modalities.
-        :param features: features as a pd.Series
+        :param features: features as a pd.DataFrame
         :param modalities: tuple with modalities
 
         **Example**::
@@ -73,8 +67,7 @@ def bimodal_analyzer(features, modalities):
 def multimodal(features):
     """
         Pretrained model for emotion recognition in text + audio + video.
-        :param features: text + audio + video features as a pd.Series
+        :param features: text + audio + video features as a pd.DataFrame
     """
     pipeline =  joblib.load(os.path.join(path, 'models/multimodal.pkl'))
-    features = pd.DataFrame(features).T
     return pipeline.predict(features)
