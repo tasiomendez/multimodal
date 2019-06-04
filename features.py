@@ -33,6 +33,7 @@ class AudioFeatures(Features):
         super().__init__(**kwargs)
 
     def run(self, file, window=0.050, step=0.025):
+        logger.info('Extracting features from audio file {}...'.format(os.path.basename(file)))
         df = self.features(file, window, step).mean()
         file, arousal, valence = self.get_arousal_valence(file)
         df['arousal'] = arousal
@@ -64,6 +65,7 @@ class VideoFeatures(Features):
         super().__init__(**kwargs)
 
     def run(self, file):
+        logger.info('Extracting features from video file {}...'.format(os.path.basename(file)))
         return VideoAnalyzer(self.model, file).analyze().toDataFrame()
 
     def synchronize(self, df, start, end):
@@ -93,6 +95,7 @@ class BimodalFeatures(Features):
         if not '#starttime' in df.columns or not '#endtime' in df.columns:
             raise Exception('Some columns are missing in bounds file')
         self.bounds = df[['#starttime', '#endtime']]
+        logger.info('Bounds file configured succesfully!')
         super().__init__(**kwargs)
 
     def run_audio(self, files):

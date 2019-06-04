@@ -81,7 +81,7 @@ class VideoAnalyzer(ImageAnalyzer):
         self.results = []
         for frame in self.frames():
             if (self.verbose):
-                progress_bar(len(self.results), self.nframes, prefix='Progress: ', bar_length=80)
+                progress_bar(len(self.results), self.nframes, prefix='Progress: ', bar_length=90)
             gray = self.toGray(frame)
             faces = self.faces(gray)
             # Get face if it is detected else whole frame

@@ -46,7 +46,8 @@ class FERModel:
         self._initialize_model()
 
     def _initialize_model(self):
-        logger.info('Initializing FER model parameters for target emotions: %s' % self.target_emotions)
+        # logger.info('Initializing FER model parameters for target emotions: %s' % self.target_emotions)
+        logger.info('Initializing FER model parameters')
         self.model, self.emotion_map = self._choose_model_from_target_emotions()
 
     def predict(self, image):
