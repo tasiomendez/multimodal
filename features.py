@@ -50,7 +50,8 @@ class AudioFeatures(Features):
         try:
             values, names = aT.fileRegression(file, 'models/svmSpeechEmotion', 'svm')
             return os.path.basename(file).split('.')[0], values[0], values[1]
-        except Exception:
+        except Exception as e:
+            logger.warning(e)
             return os.path.basename(file).split('.')[0], float('NaN'), float('NaN')
 
 

@@ -1,0 +1,136 @@
+import argparse
+import glob
+import logging
+import os
+import pandas as pd
+import yaml
+from utils import timer
+
+logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s - %(message)s')
+logger = logging.getLogger(__name__ if __name__ != '__main__' else 'main')
+
+
+def main():
+    """Define possible options for the CLI."""
+
+    parser = argparse.ArgumentParser(description='Sentiment recognition in Spanish-language videos. Three modalities could ' +
+    'be considered: text, audio and video. The analysis could be accomplished taking into account one, two or the three modalities.')
+
+    parser.add_argument('--file', help='Configuration file with the analysis that is going to be performed')
+
+    parser.add_argument('--bounds', help='Bounds file needed for synchronization', nargs=1)
+    parser.add_argument('--text', help='Text file for the analysis in CSV format', nargs=1)
+    parser.add_argument('--audio', help='Audio files for the analysis in WAV format', nargs='+')
+    parser.add_argument('--audio-dir', help='Directory with the audio files in WAV format', nargs=1)
+    parser.add_argument('--video', help='Video file for the analysis in MP4 format', nargs=1)
+
+    args = parser.parse_args()
+
+    # Error management when using command line
+
+    if args.file is not None and list(vars(args).values()).count(None) != (len(vars(args)) - 1):
+        parser.error('If --file option is used, any other option cannot be used')
+    elif args.audio is not None and args.audio_dir is not None:
+        parser.error('Cannot use --audio and --audio-dir at the same time')
+    elif (list(vars(args).values()).count(None) != (len(vars(args)) - 1) and
+    (args.audio is not None or args.text is not None) and args.bounds is None):
+        parser.error('A bounds file is needed for perform an analysis')
+
+    # Load parameters from configuration file
+
+    if args.file is not None:
+        logger.info('Loading configuration file...')
+        configuration = readConfigurationFile(args.file)
+        args.bounds = configuration['bounds'] if 'bounds' in configuration else None
+        args.text = configuration['text'] if 'text' in configuration else None
+        args.audio = configuration['audio'] if 'audio' in configuration else None
+        args.audio_dir = configuration['audio_dir'] if 'audio_dir' in configuration else None
+        args.video = configuration['video'] if 'video' in configuration else None
+
+    # Fileformat error management
+
+    if args.text is not None and os.path.splitext(args.text[0])[1].lower() != '.csv':
+        parser.error('File format {} for --text not supported'.format(os.path.splitext(args.text[0])[1]))
+    if args.video is not None and os.path.splitext(args.video[0])[1].lower() != '.mp4':
+        parser.error('File format {} for --video not supported'.format(os.path.splitext(args.video[0])[1]))
+    for audio in args.audio or []:
+        if args.audio is not None and os.path.splitext(audio)[1].lower() != '.wav':
+            parser.error('File format {} for --audio not supported'.format(os.path.splitext(audio)[1]))
+
+    # Run analysis
+    import analyzer
+    import features
+    results = {}
+
+    if args.text is not None:
+        # Text analysis
+        logger.info('Computing analysis for text...')
+        with timer('Text analysis', logger.info):
+            args.text = pd.read_csv(args.text[0], sep=';')
+            results['text'] = [analyzer.text_analyzer(el) for el in args.text.transcription]
+
+    if args.audio_dir is not None:
+        args.audio = sorted(glob.glob(os.path.join(args.audio_dir[0], '*.wav')))
+
+    if args.audio is not None:
+        # Audio analysis
+        logger.info('Computing analysis for audio...')
+        args.audio = sorted(args.audio)
+        results['audio'] = []
+        with timer('Audio analysis', logger.info):
+            for file in args.audio:
+                ft = features.AudioFeatures().run(file)
+                results['audio'].append(analyzer.audio_analyzer(ft))
+
+    if args.video is not None:
+        # Video analysis
+        logger.info('Computing analysis for video...')
+        results['video'] = []
+        with timer('Video analysis', logger.info):
+            ft = features.VideoFeatures().run(args.video[0])
+            for index, row in ft.iterrows():
+                results['video'].append(row)
+
+    if args.bounds is not None:
+        args.bounds = pd.read_csv(args.bounds[0], sep=';')
+
+    if args.text is not None and args.audio is not None:
+        # Text and audio analysis
+        logger.info('Computing analysis using two modalities: text + audio...')
+        with timer('Text + Audio analysis', logger.info):
+            mods = ('text', 'audio')
+            ft = features.BimodalFeatures(args.bounds).run(mods, text=args.text, audio=args.audio)
+            results['text_audio'] = analyzer.bimodal_analyzer(ft, mods)
+
+    if args.audio is not None and args.video is not None:
+        # Audio and video analysis
+        logger.info('Computing analysis using two modalities: audio + video...')
+        with timer('Audio + Video analysis', logger.info):
+            mods = ('audio', 'video')
+            ft = features.BimodalFeatures(args.bounds).run(mods, audio=args.audio, video=args.video[0])
+            results['audio_video'] = analyzer.bimodal_analyzer(ft, mods)
+
+    if args.video is not None and args.text is not None:
+        # Video and text analysis
+        logger.info('Computing analysis using two modalities: video + text...')
+        with timer('Video + Text analysis', logger.info):
+            mods = ('video', 'text')
+            ft = features.BimodalFeatures(args.bounds).run(mods, video=args.video[0], text=args.text)
+            results['video_text'] = analyzer.bimodal_analyzer(ft, mods)
+
+    if args.text is not None and args.audio is not None and args.video is not None:
+        # Multimodal analysis
+        logger.info('Computing analysis using three modalities: text + audio + video...')
+        with timer('Multimodal analysis', logger.info):
+            ft = features.MultimodalFeatures(args.bounds).run(text=args.text, audio=args.audio, video=args.video[0])
+            results['multimodal'] = analyzer.multimodal(ft)
+
+
+def readConfigurationFile(file):
+    """Read configuration file"""
+    with open(file, 'r') as stream:
+        return yaml.safe_load(stream)
+
+
+if __name__ == "__main__":
+    main()

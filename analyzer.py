@@ -27,7 +27,7 @@ def audio_analyzer(audio):
     """
     pipeline = joblib.load(os.path.join(path, 'models/audio.pkl'))
     features = pd.DataFrame(audio).T
-    return pipeline.predict(features)
+    return pipeline.predict(features)[0]
 
 
 def video_analyzer(video):

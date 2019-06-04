@@ -1,0 +1,18 @@
+text:
+  - dataset/transcriptions/100_makeup.csv
+audio_dir:
+  - dataset/audioFiles/100_makeup
+# audio:
+#   - dataset/audioFiles/100_makeup_1.wav
+#   - dataset/audioFiles/100_makeup_2.wav
+#   - dataset/audioFiles/100_makeup_3.wav
+#   - dataset/audioFiles/100_makeup_4.wav
+#   - dataset/audioFiles/100_makeup_5.wav
+#   - dataset/audioFiles/100_makeup_6.wav
+#   - dataset/audioFiles/100_makeup_7.wav
+#   - dataset/audioFiles/100_makeup_8.wav
+#   - dataset/audioFiles/100_makeup_9.wav
+# video:
+#   - dataset/100_makeup.mp4
+bounds:
+  - dataset/transcriptions/100_makeup.csv
