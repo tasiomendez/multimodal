@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from pyAudioAnalysis import audioBasicIO, audioFeatureExtraction
 from pyAudioAnalysis import audioTrainTest as aT
-from .video import VideoAnalyzer
+from video import VideoAnalyzer
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s - %(message)s')
 logger = logging.getLogger(__name__)

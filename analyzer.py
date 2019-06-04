@@ -1,8 +1,8 @@
 import logging
 import os
 import pandas as pd
-from .utils import custom_tokenizer
-from .selector import Selector
+from utils import custom_tokenizer
+from selector import Selector
 from sklearn.externals import joblib
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s - %(message)s')
@@ -49,7 +49,7 @@ def bimodal_analyzer(features, modalities):
         **Example**::
 
             modalities = ('audio', 'video')
-            prediction = bi_analyzer(features, modalities)
+            prediction = bimodal_analyzer(features, modalities)
     """
     if len(modalities) != 2:
         raise Exception('length of modalities is {} and must be 2'.format(len(modalities)))
