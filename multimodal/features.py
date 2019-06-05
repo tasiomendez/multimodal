@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from pyAudioAnalysis import audioBasicIO, audioFeatureExtraction
 from pyAudioAnalysis import audioTrainTest as aT
-from video import VideoAnalyzer
+from .video import VideoAnalyzer
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class AudioFeatures(Features):
     def get_arousal_valence(self, file):
         """Returns file, arousal and valence is this order."""
         try:
-            values, names = aT.fileRegression(file, 'models/svmSpeechEmotion', 'svm')
+            values, names = aT.fileRegression(file, os.path.join(path, 'models/svmSpeechEmotion'), 'svm')
             return os.path.basename(file).split('.')[0], values[0], values[1]
         except Exception as e:
             logger.warning(e)

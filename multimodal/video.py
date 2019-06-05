@@ -3,8 +3,8 @@ import logging
 import numpy as np
 import os
 import pandas as pd
-from fermodel import FERModel
-from utils import progress_bar
+from .fermodel import FERModel
+from .utils import progress_bar
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s - %(message)s')
 logger = logging.getLogger(__name__)

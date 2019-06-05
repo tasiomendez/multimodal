@@ -1,8 +1,8 @@
 import logging
 import os
 import pandas as pd
-from utils import custom_tokenizer
-from selector import Selector
+from .utils import custom_tokenizer
+from .selector import Selector
 from sklearn.externals import joblib
 
 logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s - %(message)s')
@@ -37,7 +37,7 @@ def video_analyzer(video):
     """
     pipeline = joblib.load(os.path.join(path, 'models/video.pkl'))
     features = pd.DataFrame(video).T
-    return pipeline.predict(features)
+    return pipeline.predict(features)[0]
 
 
 def bimodal_analyzer(features, modalities):

@@ -12,7 +12,7 @@ audio_dir:
 #   - dataset/audioFiles/100_makeup_7.wav
 #   - dataset/audioFiles/100_makeup_8.wav
 #   - dataset/audioFiles/100_makeup_9.wav
-# video:
-#   - dataset/100_makeup.mp4
+video:
+  - dataset/100_makeup.mp4
 bounds:
   - dataset/transcriptions/100_makeup.csv

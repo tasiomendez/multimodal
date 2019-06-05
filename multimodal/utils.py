@@ -29,6 +29,7 @@ def custom_tokenizer(words):
 
 
 def progress_bar(iteration, total, prefix='', suffix='', decimals=2, bar_length=100):
+    """Print progress bar. Must be called in a loop"""
     str_format = "{0:." + str(decimals) + "f}"
     if iteration == total-1:
         percents = str_format.format(float(100))
