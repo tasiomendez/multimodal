@@ -1,0 +1,10 @@
+version: '2'
+services:
+  multimodal:
+    build: .
+    container_name: multimodal-gsi
+    restart: always
+    volumes:
+      - ./dataset:/usr/src/app/dataset
+    environment:
+      - CONFIG=config.yml
