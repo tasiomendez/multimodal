@@ -5,6 +5,7 @@ services:
     container_name: multimodal-gsi
     restart: always
     volumes:
+      - ./config.yml:/usr/src/app/config.yml
       - ./dataset:/usr/src/app/dataset
     environment:
       - CONFIG=config.yml
