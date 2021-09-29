@@ -4,7 +4,7 @@ eyed3==0.8.10
 h5py==2.9.0
 keras==2.2.4
 matplotlib
-nltk==3.4.1
+nltk==3.6.3
 numpy==1.14.3
 opencv-python
 pandas
